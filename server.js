@@ -483,6 +483,10 @@ app.get('*', (req, res) => {
 
 // [L-1] Bind to localhost only in development, allow public interface in production
 const BIND_HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
-app.listen(PORT, BIND_HOST, () => {
-  console.log(`\n  🌱 Plant ID & Care Guide running at http://${BIND_HOST}:${PORT}\n`);
-});
+if (require.main === module) {
+  app.listen(PORT, BIND_HOST, () => {
+    console.log(`\n  🌱 Plant ID & Care Guide running at http://${BIND_HOST}:${PORT}\n`);
+  });
+}
+
+module.exports = app;

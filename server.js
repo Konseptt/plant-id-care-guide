@@ -481,7 +481,8 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// [L-1] Bind to localhost only: not exposed on LAN
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`\n  🌱 Plant ID & Care Guide running at http://127.0.0.1:${PORT}\n`);
+// [L-1] Bind to localhost only in development, allow public interface in production
+const BIND_HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
+app.listen(PORT, BIND_HOST, () => {
+  console.log(`\n  🌱 Plant ID & Care Guide running at http://${BIND_HOST}:${PORT}\n`);
 });

@@ -1,11 +1,7 @@
-/* ═══════════════════════════════════════════════
-   PLANT ID & CARE GUIDE: Retro Botanical Style
-   Hand-crafted, organic, imperfect, alive.
-   ═══════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
-/* ── Reset & Root ───────────────────────────── */
+/* Reset & Root */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -41,7 +37,7 @@ body {
   position: relative;
 }
 
-/* ── Paper Texture Overlay ──────────────────── */
+/* Paper Texture Overlay */
 body::before {
   content: '';
   position: fixed;
@@ -52,7 +48,7 @@ body::before {
   z-index: 9999;
 }
 
-/* ── Ink Stain Decorative Blobs ─────────────── */
+/* Ink Stain Decorative Blobs */
 body::after {
   content: '';
   position: fixed;
@@ -74,7 +70,7 @@ body::after {
   100% { transform: translate(20px, -20px) rotate(-5deg) scale(0.95); }
 }
 
-/* ── Page Container ─────────────────────────── */
+/* Page Container */
 .page {
   max-width: 900px;
   margin: 0 auto;
@@ -83,7 +79,7 @@ body::after {
   z-index: 1;
 }
 
-/* ── Header: like a journal title page ─────── */
+/* Header: like a journal title page */
 .journal-header {
   text-align: center;
   padding: 3rem 1rem 2rem;
@@ -174,7 +170,7 @@ body::after {
   padding: 0 0.5rem;
 }
 
-/* ── Upload Zone: like a pinned note ───────── */
+/* Upload Zone: like a pinned note */
 .upload-zone {
   position: relative;
   background: var(--cream);
@@ -246,7 +242,7 @@ body::after {
   display: none;
 }
 
-/* ── Image Preview: like a photo pinned to paper ── */
+/* Image Preview: like a photo pinned to paper */
 .preview-area {
   display: none;
   position: relative;
@@ -313,7 +309,7 @@ body::after {
   transform: rotate(90deg);
 }
 
-/* ── Organ Selector: hand-labeled tags ─────── */
+/* Organ Selector: hand-labeled tags */
 .organ-picker {
   display: none;
   gap: 0.6rem;
@@ -361,7 +357,7 @@ body::after {
   box-shadow: 2px 3px 0 var(--shadow);
 }
 
-/* ── Identify Button: like a stamp ─────────── */
+/* Identify Button: like a stamp */
 .identify-btn {
   display: none;
   margin: 0 auto 2rem;
@@ -411,7 +407,7 @@ body::after {
   transform: rotate(-1deg) scale(1);
 }
 
-/* ── Loading State ──────────────────────────── */
+/* Loading State */
 .loading-area {
   display: none;
   text-align: center;
@@ -446,7 +442,7 @@ body::after {
   50% { opacity: 1; }
 }
 
-/* ── Results: field journal entry ──────────── */
+/* Results: field journal entry */
 .results-area {
   display: none;
 }
@@ -607,7 +603,7 @@ body::after {
   cursor: not-allowed;
 }
 
-/* ── Care Guide: the field notes ───────────── */
+/* Care Guide: the field notes */
 .care-guide-area {
   display: none;
   margin-top: 2rem;
@@ -728,7 +724,7 @@ body::after {
   border-bottom: 1px dashed var(--ink-faded);
 }
 
-/* ── Error State ────────────────────────────── */
+/* Error State */
 .error-area {
   display: none;
   text-align: center;
@@ -769,7 +765,7 @@ body::after {
   color: var(--cream);
 }
 
-/* ── Footer ─────────────────────────────────── */
+/* Footer */
 .journal-footer {
   text-align: center;
   padding: 3rem 1rem 1rem;
@@ -786,7 +782,7 @@ body::after {
   animation: leafSway 4s ease-in-out infinite alternate;
 }
 
-/* ── Margin Doodles: decorative scribbles ──── */
+/* Margin Doodles: decorative scribbles */
 .doodle {
   position: fixed;
   pointer-events: none;
@@ -799,7 +795,7 @@ body::after {
 .doodle-2 { right: 3%; top: 55%; transform: rotate(15deg); }
 .doodle-3 { left: 5%; bottom: 15%; transform: rotate(-10deg); }
 
-/* ── Animations ─────────────────────────────── */
+/* Animations */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px) rotate(-0.5deg); }
   to { opacity: 1; transform: translateY(0) rotate(0deg); }
@@ -815,7 +811,7 @@ body::after {
 .stagger-4 { animation-delay: 0.4s; opacity: 0; }
 .stagger-5 { animation-delay: 0.5s; opacity: 0; }
 
-/* ── Responsive ─────────────────────────────── */
+/* Responsive */
 @media (max-width: 600px) {
   .page { padding: 1rem; }
   .journal-title { font-size: 2.8rem; }
@@ -831,7 +827,7 @@ body::after {
   .preview-frame { padding: 8px 8px 30px 8px; }
 }
 
-/* ── Typing Cursor ──────────────────────────── */
+/* Typing Cursor */
 .typing-cursor {
   display: inline;
   color: var(--botanical-green);
@@ -844,7 +840,7 @@ body::after {
   50% { opacity: 0; }
 }
 
-/* ── Scrollbar: subtle vintage ─────────────── */
+/* Scrollbar: subtle vintage */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--parchment-dark); }
 ::-webkit-scrollbar-thumb {
@@ -853,7 +849,7 @@ body::after {
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-light); }
 
-/* ── Selection ──────────────────────────────── */
+/* Selection */
 ::selection {
   background: var(--botanical-green-pale);
   color: var(--ink);

@@ -1,11 +1,7 @@
-/* ═══════════════════════════════════════════════
-   PLANT FIELD JOURNAL: Frontend Logic (Hardened)
-   ═══════════════════════════════════════════════ */
-
 (function () {
   'use strict';
 
-  // ── DOM refs ──
+  // DOM elements
   const uploadZone = document.getElementById('upload-zone');
   const fileInput = document.getElementById('file-input');
   const previewArea = document.getElementById('preview-area');
@@ -25,12 +21,12 @@
   const careGuideArea = document.getElementById('care-guide-area');
   const careGuideContent = document.getElementById('care-guide-content');
 
-  // ── State ──
+  // App state
   let currentFile = null;
   let selectedOrgan = 'auto';
   let identificationResults = null;
 
-  // ── [C-1] HTML Escaping: prevent XSS from API data ──
+  // Simple HTML escaping helper for safe rendering
   function esc(str) {
     if (!str) return '';
     const div = document.createElement('div');
@@ -38,21 +34,19 @@
     return div.innerHTML;
   }
 
-  // Validate URL: only allow https and specific trusted domains
+  // Only allow HTTPS and trusted Pl@ntNet image domains
   function isTrustedImageUrl(url) {
     if (!url || typeof url !== 'string') return false;
     try {
       const parsed = new URL(url);
       if (parsed.protocol !== 'https:') return false;
-      // Only allow Pl@ntNet image domains
-      if (parsed.hostname.endsWith('.plantnet.org')) return true;
-      return false;
+      return parsed.hostname.endsWith('.plantnet.org');
     } catch {
       return false;
     }
   }
 
-  // ── Loading messages ──
+  // Messages shown during identification
   const loadingMessages = [
     'Consulting the botanical archives...',
     'Leafing through the herbarium...',
@@ -63,7 +57,7 @@
     'Pressing the specimen into memory...',
   ];
 
-  // ── Helpers ──
+  // Helper utility functions
   function show(el) { el.classList.add('visible'); }
   function hide(el) { el.classList.remove('visible'); }
   function showError(msg, detail) {
@@ -80,7 +74,7 @@
     }, 2500);
   }
 
-  // ── [P2-4] CSRF: call endpoint to set httpOnly cookie; no token in JS ──
+  // Set CSRF cookie on demand before secure operations
   async function setCsrfCookie() {
     try {
       const res = await fetch('/api/csrf-token', { credentials: 'same-origin' });
@@ -91,7 +85,7 @@
     }
   }
 
-  // ── Upload Zone Events ──
+  // Setup drag and drop events
   uploadZone.addEventListener('click', () => fileInput.click());
   uploadZone.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
@@ -123,7 +117,6 @@
     const reader = new FileReader();
     reader.onload = (e) => {
       previewImg.src = e.target.result;
-      // [C-1] Use textContent, not innerHTML, for user-provided filenames
       previewCaption.textContent = file.name.replace(/\.[^.]+$/, '');
       show(previewArea);
       show(organPicker);
@@ -163,7 +156,7 @@
     selectedOrgan = tag.dataset.organ;
   });
 
-  // ── Identify ──
+  // Handle identification request
   identifyBtn.addEventListener('click', identify);
 
   async function identify() {
@@ -202,7 +195,7 @@
     }
   }
 
-  // ── [C-1] Render Results: ALL API data escaped via esc() ──
+  // Render matched species results list
   function renderResults(data) {
     if (!data.results || data.results.length === 0) {
       showError('No species matched your photograph.', 'Try a clearer image or a different angle.');
@@ -220,15 +213,12 @@
       entry.className = `species-entry animate-in stagger-${Math.min(idx + 1, 5)}`;
       entry.dataset.index = idx;
 
-      // ── Build DOM safely using createElement, NOT innerHTML for API data ──
-
-      // Rank
+      // Build DOM nodes safely to prevent XSS
       const rankSpan = document.createElement('span');
       rankSpan.className = 'species-rank';
       rankSpan.textContent = `#${idx + 1}`;
       entry.appendChild(rankSpan);
 
-      // Scientific name
       const nameDiv = document.createElement('div');
       nameDiv.className = 'species-name';
       nameDiv.textContent = sp.scientificNameWithoutAuthor || '';
@@ -240,7 +230,6 @@
       }
       entry.appendChild(nameDiv);
 
-      // Common names
       if (sp.commonNames && sp.commonNames.length > 0) {
         const commonDiv = document.createElement('div');
         commonDiv.className = 'species-common';
@@ -248,13 +237,11 @@
         entry.appendChild(commonDiv);
       }
 
-      // Family
       const familyDiv = document.createElement('div');
       familyDiv.className = 'species-family';
       familyDiv.textContent = `${sp.family?.scientificNameWithoutAuthor || ''} · ${sp.genus?.scientificNameWithoutAuthor || ''}`;
       entry.appendChild(familyDiv);
 
-      // Confidence bar
       const confDiv = document.createElement('div');
       confDiv.className = 'species-confidence';
       confDiv.innerHTML = `
@@ -265,7 +252,6 @@
       `;
       entry.appendChild(confDiv);
 
-      // Reference images: validate URLs
       if (result.images && result.images.length > 0) {
         const imgsDiv = document.createElement('div');
         imgsDiv.className = 'species-images';
@@ -282,7 +268,6 @@
         if (imgsDiv.children.length > 0) entry.appendChild(imgsDiv);
       }
 
-      // Care guide button
       const careBtn = document.createElement('button');
       careBtn.className = 'care-btn';
       careBtn.dataset.index = idx;
@@ -292,7 +277,6 @@
       speciesList.appendChild(entry);
     });
 
-    // Animate confidence bars
     requestAnimationFrame(() => {
       document.querySelectorAll('.confidence-bar-fill').forEach(bar => {
         bar.style.width = bar.dataset.target + '%';
@@ -302,7 +286,7 @@
     resultsArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // ── Care Guide button delegation ──
+  // Handle write care guide clicks
   speciesList.addEventListener('click', (e) => {
     const btn = e.target.closest('.care-btn');
     if (!btn) return;
@@ -324,7 +308,7 @@
     btn.disabled = true;
     btn.textContent = '✍️ Writing...';
 
-    // [P2-4] Set CSRF cookie before opening SSE
+    // Set CSRF cookie before making SSE request
     const csrfOk = await setCsrfCookie();
     if (!csrfOk) {
       careGuideContent.innerHTML = '<p style="color:var(--wine);">Session error. Please refresh the page.</p>';
@@ -346,7 +330,6 @@
     careGuideArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     let rawMarkdown = '';
-
     const evtSource = new EventSource(`/api/care-guide?${params.toString()}`);
 
     evtSource.onmessage = (event) => {
@@ -386,30 +369,23 @@
     };
   }
 
-  // ── Markdown → HTML (care guide content is LLM-generated, escape first) ──
+  // Simple markdown parser with HTML escaping
   function markdownToHtml(md) {
     if (!md) return '<p>No care guide available.</p>';
 
     let html = md
-      // Escape HTML entities FIRST to prevent injection
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      // Headings
       .replace(/^### (.+)$/gm, '<h3>$1</h3>')
       .replace(/^## (.+)$/gm, '<h2>$1</h2>')
       .replace(/^# (.+)$/gm, '<h2>$1</h2>')
-      // Bold & Italic
       .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      // Inline code
       .replace(/`(.+?)`/g, '<code style="background:var(--parchment-dark);padding:0.1rem 0.3rem;border-radius:2px;font-size:0.8rem;">$1</code>')
-      // Horizontal rules
       .replace(/^---$/gm, '<hr class="divider" style="margin:1.5rem 0;" />')
-      // Unordered lists
       .replace(/^[\-\*] (.+)$/gm, '<li>$1</li>')
-      // Ordered lists
       .replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
 
     html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
@@ -427,7 +403,7 @@
     return html;
   }
 
-  // ── Try Again ──
+  // Error recovery handler
   tryAgainBtn.addEventListener('click', () => {
     hide(errorArea);
     if (currentFile) {

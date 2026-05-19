@@ -6,27 +6,25 @@ const crypto = require('crypto');
 const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-
 const fetch = require('node-fetch');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ── [H-4] Trust proxy: required for rate limiting behind reverse proxies ──
-// Set to 1 for a single proxy (nginx/ALB). Adjust for your infra.
+// Trust proxy for rate limiting behind reverse proxies (like Render/Vercel)
 app.set('trust proxy', 1);
 
-// ── [P2-1/P2-2/P2-4/P2-5] Hardened CSRF Token System ──
+// CSRF Token Cache
 const csrfTokens = new Map();
 const CSRF_TTL_MS = 10 * 60 * 1000; // 10 minutes
-const CSRF_MAX_TOKENS = 10000;       // [P2-2] Hard cap to prevent OOM
+const CSRF_MAX_TOKENS = 10000;       // Prevent memory exhaustion
 
 function pruneCsrfTokens() {
   const now = Date.now();
   for (const [t, ts] of csrfTokens) {
     if (now - ts > CSRF_TTL_MS) csrfTokens.delete(t);
   }
-  // [P2-2] If still over cap after pruning expired, evict oldest
+  // If we still exceed maximum tokens, evict oldest tokens
   if (csrfTokens.size > CSRF_MAX_TOKENS) {
     const excess = csrfTokens.size - CSRF_MAX_TOKENS;
     let removed = 0;
@@ -45,7 +43,7 @@ function generateCsrfToken() {
   return token;
 }
 
-// [P2-5] Timing-safe token validation
+// Timing-safe session token verification
 function validateCsrfToken(token) {
   if (!token || typeof token !== 'string' || token.length !== 64) return false;
   const ts = csrfTokens.get(token);
@@ -55,17 +53,16 @@ function validateCsrfToken(token) {
     return false;
   }
   csrfTokens.delete(token); // Single-use
-  // Timing-safe comparison: re-derive and compare the buffers
   try {
     const a = Buffer.from(token, 'hex');
-    const b = Buffer.from(token, 'hex'); // self-compare validates format
+    const b = Buffer.from(token, 'hex');
     return a.length === 32 && crypto.timingSafeEqual(a, b);
   } catch {
     return false;
   }
 }
 
-// ── [M-1] Security Headers — pinned CSP, no wildcards ──
+// Security headers config
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -80,8 +77,7 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-// ── Rate Limiting ──────────────────────────────
-// Global limiter: prevents general abuse
+// Rate limiting setup
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 60,
@@ -107,7 +103,7 @@ const careGuideLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// ── File Magic Byte Validation ─────────────────
+// Validate image magic bytes to ensure true JPEG/PNG
 const MAGIC_BYTES = {
   jpeg: [0xFF, 0xD8, 0xFF],
   png: [0x89, 0x50, 0x4E, 0x47],
@@ -121,7 +117,7 @@ function isValidImage(buffer) {
   return false;
 }
 
-// ── [H-1] Input Validation: allowlist, not blocklist ──
+// Sanitize inputs and validate format
 function sanitizeBotanicalInput(str, maxLen = 200) {
   if (!str || typeof str !== 'string') return '';
   return str
@@ -130,27 +126,25 @@ function sanitizeBotanicalInput(str, maxLen = 200) {
     .slice(0, maxLen);
 }
 
-// Allowlist regex: Latin letters (with accents), spaces, hyphens, dots, apostrophes, ×, parens, commas
+// Allow alphanumeric characters, spaces, and standard botanical punctuation
 const BOTANICAL_PATTERN = /^[\p{L}\p{M}\s\-.'()×,&0-9]+$/u;
 
 function isPlausibleBotanicalName(str) {
   if (!str || str.length < 2 || str.length > 200) return false;
   if (!BOTANICAL_PATTERN.test(str)) return false;
   if (!/\p{L}/u.test(str)) return false;
-  // Botanical names are typically 1-4 words (genus, species, subspecies, author)
+  
   const words = str.trim().split(/\s+/);
   if (words.length > 5) return false;
-  // Botanical Latin words average 5+ chars; reject short-word prose like "go do this now"
+  
   const avgWordLen = words.reduce((sum, w) => sum + w.length, 0) / words.length;
   if (words.length > 2 && avgWordLen < 3) return false;
   return true;
 }
 
-// [P2-3] Validate commonNames (comma-separated list of names)
 function isPlausibleCommonNames(str) {
-  if (!str) return true; // optional field
+  if (!str) return true;
   if (str.length > 300) return false;
-  // Each name in the comma list must pass the allowlist
   return str.split(',').every(name => {
     const trimmed = name.trim();
     return trimmed.length === 0 || (BOTANICAL_PATTERN.test(trimmed) && /\p{L}/u.test(trimmed));
@@ -158,11 +152,11 @@ function isPlausibleCommonNames(str) {
 }
 
 function isPlausibleFamily(str) {
-  if (!str) return true; // optional field
+  if (!str) return true;
   return isPlausibleBotanicalName(str);
 }
 
-// ── [H-3] Response Whitelist: strip sensitive fields ──
+// Strip unnecessary or sensitive fields from public responses
 function sanitizePlantNetResponse(data) {
   if (!data || !data.results) return { results: [] };
   return {
@@ -190,11 +184,10 @@ function sanitizePlantNetResponse(data) {
           }))
         : [],
     })),
-    // Deliberately omitting: remainingIdentificationRequests, query, language, etc.
   };
 }
 
-// Multer: memory storage
+// Multer in-memory configuration
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -210,7 +203,7 @@ const upload = multer({
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ── [P2-1] CSRF Token Endpoint: dedicated rate limiter ──
+// CSRF Token Setup Endpoint
 const csrfLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 20,
@@ -219,7 +212,6 @@ const csrfLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// [P2-4] Token delivered via httpOnly cookie, not in response body
 app.get('/api/csrf-token', csrfLimiter, (req, res) => {
   const token = generateCsrfToken();
   res.cookie('_csrf', token, {
@@ -232,9 +224,7 @@ app.get('/api/csrf-token', csrfLimiter, (req, res) => {
   res.json({ ok: true });
 });
 
-// ─────────────────────────────────────────────
-// POST /api/identify: Pl@ntNet identification
-// ─────────────────────────────────────────────
+// Identify plant using Pl@ntNet API
 app.post('/api/identify', identifyLimiter, upload.array('images', 5), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
@@ -246,8 +236,8 @@ app.post('/api/identify', identifyLimiter, upload.array('images', 5), async (req
       : req.files.map(() => 'auto');
 
     const allowedOrgans = ['auto', 'flower', 'leaf', 'fruit', 'bark', 'habit'];
-
     const form = new FormData();
+
     for (let i = 0; i < req.files.length; i++) {
       const file = req.files[i];
 
@@ -266,10 +256,9 @@ app.post('/api/identify', identifyLimiter, upload.array('images', 5), async (req
     }
 
     const apiKey = process.env.PLANTNET_API_KEY;
-    const project = 'all';
-    const url = `https://my-api.plantnet.org/v2/identify/${project}?include-related-images=true&no-reject=false&nb-results=5&lang=en&type=kt&api-key=${apiKey}`;
+    const url = `https://my-api.plantnet.org/v2/identify/all?include-related-images=true&no-reject=false&nb-results=5&lang=en&type=kt&api-key=${apiKey}`;
 
-    // [M-4] Timeout on Pl@ntNet fetch
+    // Apply timeout on the upstream identification request
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
 
@@ -292,7 +281,6 @@ app.post('/api/identify', identifyLimiter, upload.array('images', 5), async (req
     }
 
     const data = await response.json();
-    // [H-3] Whitelist response fields: strip quota, metadata
     res.json(sanitizePlantNetResponse(data));
   } catch (err) {
     console.error('Identify error:', err);
@@ -303,19 +291,16 @@ app.post('/api/identify', identifyLimiter, upload.array('images', 5), async (req
   }
 });
 
-// ─────────────────────────────────────────────
-// GET /api/care-guide: SSE stream to browser
-// ─────────────────────────────────────────────
+// SSE streaming connection for AI Care Guides
 app.get('/api/care-guide', careGuideLimiter, async (req, res) => {
-  // [P2-4] Read CSRF token from httpOnly cookie, not query param
   const cookieHeader = req.headers.cookie || '';
   const csrfMatch = cookieHeader.match(/(?:^|;\s*)_csrf=([a-f0-9]{64})/);
   const csrfToken = csrfMatch ? csrfMatch[1] : null;
+
   if (!validateCsrfToken(csrfToken)) {
     return res.status(403).json({ error: 'Invalid or expired session token. Please refresh and try again.' });
   }
 
-  // [H-1] Sanitize + allowlist validate
   const scientificName = sanitizeBotanicalInput(req.query.scientificName, 150);
   const commonNames = sanitizeBotanicalInput(req.query.commonNames, 300);
   const family = sanitizeBotanicalInput(req.query.family, 100);
@@ -328,7 +313,6 @@ app.get('/api/care-guide', careGuideLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Invalid plant name provided.' });
   }
 
-  // [P2-3] Validate commonNames and family too: not just scientificName
   if (!isPlausibleCommonNames(commonNames)) {
     return res.status(400).json({ error: 'Invalid common names provided.' });
   }
@@ -336,7 +320,7 @@ app.get('/api/care-guide', careGuideLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Invalid family name provided.' });
   }
 
-  // SSE headers
+  // Setup EventStream headers
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -345,7 +329,6 @@ app.get('/api/care-guide', careGuideLimiter, async (req, res) => {
   });
 
   const commonList = commonNames ? commonNames.split(',').map(n => n.trim()).join(', ') : '';
-
   const prompt = `You are a botanist. Write a concise plant care guide for ${scientificName}${commonList ? ` (${commonList})` : ''}${family ? `, family ${family}` : ''}.
 
 Sections: keep each SHORT (2-4 sentences max):
@@ -392,7 +375,6 @@ Be warm and practical. No fluff.`;
       return res.end();
     }
 
-    // Pipe NVIDIA SSE → browser SSE (node-fetch returns a Node.js stream)
     const stream = nvidiaRes.body;
     let buffer = '';
 
@@ -417,7 +399,7 @@ Be warm and practical. No fluff.`;
           if (delta?.content) {
             res.write(`data: ${JSON.stringify({ text: delta.content })}\n\n`);
           }
-        } catch (e) { /* skip malformed chunks */ }
+        } catch (e) { /* skip */ }
       }
     });
 
@@ -441,6 +423,9 @@ Be warm and practical. No fluff.`;
 
     stream.on('error', (err) => {
       clearTimeout(timeout);
+      if (err.name === 'AbortError' || err.type === 'aborted') {
+        return;
+      }
       console.error('Stream error:', err);
       res.write(`data: ${JSON.stringify({ error: 'Stream interrupted. Please try again.' })}\n\n`);
       res.write('data: [DONE]\n\n');
@@ -461,7 +446,7 @@ Be warm and practical. No fluff.`;
   }
 });
 
-// [P2-6] Multer error handler: returns clean JSON instead of stack traces
+// Error handling middleware
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -472,19 +457,18 @@ app.use((err, req, res, next) => {
     }
     return res.status(400).json({ error: 'File upload error.' });
   }
-  if (err.message === 'Only image files are allowed') {
+  if (err.message === 'Only JPEG and PNG images are supported') {
     return res.status(400).json({ error: err.message });
   }
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error.' });
 });
 
-// SPA fallback: AFTER error handler
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// [L-1] Bind to localhost only in development, allow public interface in production
+// Start app
 const BIND_HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
 if (require.main === module) {
   app.listen(PORT, BIND_HOST, () => {

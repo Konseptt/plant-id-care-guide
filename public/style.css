@@ -659,14 +659,22 @@ body::after {
   padding-left: 50px;
 }
 
-.care-guide-content h2 {
+.care-guide-content h2,
+.care-guide-content h3 {
   font-family: 'Caveat', cursive;
-  font-size: 1.6rem;
   color: var(--botanical-green);
   margin-top: 1.8rem;
   margin-bottom: 0.5rem;
   transform: rotate(-0.3deg);
   border-bottom: none;
+}
+
+.care-guide-content h2 {
+  font-size: 1.6rem;
+}
+
+.care-guide-content h3 {
+  font-size: 1.35rem;
 }
 
 .care-guide-content h2:first-child {
@@ -813,18 +821,31 @@ body::after {
 
 /* Responsive */
 @media (max-width: 600px) {
-  .page { padding: 1rem; }
-  .journal-title { font-size: 2.8rem; }
+  .page { padding: 1rem 0.75rem 2rem; }
+  .journal-header { padding: 1.5rem 0.5rem 1rem; }
+  .journal-title { font-size: clamp(2rem, 7.5vw, 2.6rem); }
   .upload-zone { padding: 2rem 1rem; }
-  .care-guide-wrapper {
-    padding: 1.5rem 1rem;
-  }
-  .care-guide-wrapper::before { left: 30px; }
-  .care-guide-wrapper::after { left: 6px; }
-  .care-guide-content { padding-left: 20px; }
-  .species-entry { padding: 1rem 1rem 1rem 1.5rem; }
-  .doodle { display: none; }
+  .preview-area { max-width: 100%; margin-top: 0; }
   .preview-frame { padding: 8px 8px 30px 8px; }
+  .species-entry { padding: 1rem 1.2rem 1.2rem 1.5rem; }
+  .species-name { padding-right: 2.2rem; font-size: 1.25rem; }
+  .care-btn { display: block; width: 100%; text-align: center; }
+  .care-guide-wrapper { padding: 1.5rem 0.8rem; }
+  .care-guide-wrapper::before { left: 24px; }
+  .care-guide-wrapper::after { left: 4px; width: 16px; background-size: 16px 40px; }
+  .care-guide-content { padding-left: 16px; }
+  .care-guide-content table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+  .doodle { display: none; }
+}
+
+@media (max-width: 400px) {
+  .journal-title { font-size: 1.9rem; }
+  .organ-tag { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
 }
 
 /* Typing Cursor */

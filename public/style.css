@@ -103,10 +103,11 @@ body::after {
   font-size: clamp(3rem, 8vw, 5.5rem);
   font-weight: 700;
   color: var(--ink);
-  line-height: 0.9;
+  line-height: 1.1;
   transform: rotate(-1.5deg);
   position: relative;
   display: inline-block;
+  padding: 0.2rem 1.5rem 0.2rem 0.5rem;
 }
 
 .journal-title .leaf {

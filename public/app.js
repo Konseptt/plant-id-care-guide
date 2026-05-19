@@ -108,7 +108,7 @@
     e.preventDefault();
     uploadZone.classList.remove('drag-over');
     const files = e.dataTransfer.files;
-    if (files.length > 0 && files[0].type.startsWith('image/')) {
+    if (files.length > 0 && (files[0].type === 'image/jpeg' || files[0].type === 'image/png')) {
       handleFile(files[0]);
     }
   });

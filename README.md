@@ -23,7 +23,7 @@ Live Site: [https://plant.ranjansharma.info.np/](https://plant.ranjansharma.info
 graph TD
     Start([User opens Web App]) --> Upload[Uploads JPEG or PNG image]
     Upload --> IDRequest[Sends to /api/identify]
-    IDRequest --> PlantNet{Pl@ntNet API ID}
+    IDRequest --> PlantNet{"Pl@ntNet API ID"}
     PlantNet -->|Match found| Results[Display top species matches]
     PlantNet -->|No match| Error[Show helpful error state]
     Results --> Select[User selects plant and requests Care Guide]
@@ -39,7 +39,7 @@ sequenceDiagram
     autonumber
     actor Client as Browser Client
     participant Server as Express Server
-    participant PlantNet as Pl@ntNet API
+    participant PlantNet as "Pl@ntNet API"
     participant Nvidia as NVIDIA AI API
 
     Client->>Server: GET /api/csrf-token

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plant Field Journal: Identify and Care</title>
+  <meta name="description" content="Snap a photo of any plant. Get species identification and a hand-crafted care guide with watering schedules, light needs, and pro tips." />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Plant Field Journal: Identify and Care" />
+  <meta property="og:description" content="Snap a photo of any plant. Get species identification and a hand-crafted care guide with watering schedules, light needs, and pro tips." />
+  <meta property="og:image" content="/social_share_card.png" />
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Plant Field Journal: Identify and Care" />
+  <meta name="twitter:description" content="Snap a photo of any plant. Get species identification and a hand-crafted care guide with watering schedules, light needs, and pro tips." />
+  <meta name="twitter:image" content="/social_share_card.png" />
+
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>" />
+</head>
+<body>
+
+  <!-- Margin doodles -->
+  <span class="doodle doodle-1">🍃</span>
+  <span class="doodle doodle-2">🌸</span>
+  <span class="doodle doodle-3">🌱</span>
+
+  <main class="page">
+
+    <!-- ═══ HEADER ═══ -->
+    <header class="journal-header">
+      <h1 class="journal-title">
+        <span class="leaf">🌿</span> Plant Field Journal
+      </h1>
+      <p class="journal-subtitle">photograph · identify · nurture</p>
+    </header>
+
+    <hr class="divider" />
+
+    <!-- ═══ UPLOAD ═══ -->
+    <section id="upload-section">
+      <div class="upload-zone" id="upload-zone" role="button" tabindex="0" aria-label="Upload a plant photo">
+        <span class="upload-icon">📷</span>
+        <span class="upload-label">Drop your plant photo here</span>
+        <span class="upload-hint">or click to browse · jpg, png, webp · max 10MB</span>
+        <input type="file" class="upload-input" id="file-input" accept="image/*" />
+      </div>
+
+      <!-- Image Preview -->
+      <div class="preview-area" id="preview-area">
+        <div class="preview-frame">
+          <img id="preview-img" src="" alt="Your plant photo" />
+          <span class="preview-caption" id="preview-caption">specimen photograph</span>
+        </div>
+        <button class="remove-photo" id="remove-photo" title="Remove photo" aria-label="Remove photo">×</button>
+      </div>
+
+      <!-- Organ picker -->
+      <div class="organ-picker" id="organ-picker">
+        <span class="organ-picker-label">What part of the plant is this?</span>
+        <button class="organ-tag active" data-organ="auto">auto detect</button>
+        <button class="organ-tag" data-organ="flower">🌸 flower</button>
+        <button class="organ-tag" data-organ="leaf">🍃 leaf</button>
+        <button class="organ-tag" data-organ="fruit">🍎 fruit</button>
+        <button class="organ-tag" data-organ="bark">🪵 bark</button>
+        <button class="organ-tag" data-organ="habit">🌳 whole plant</button>
+      </div>
+
+      <!-- Identify Button -->
+      <button class="identify-btn" id="identify-btn">🔍 Identify this plant</button>
+    </section>
+
+    <!-- ═══ LOADING ═══ -->
+    <div class="loading-area" id="loading-area">
+      <span class="loading-quill">🪶</span>
+      <p class="loading-text" id="loading-text">Consulting the botanical archives...</p>
+    </div>
+
+    <!-- ═══ ERROR ═══ -->
+    <div class="error-area" id="error-area">
+      <p class="error-msg" id="error-msg">Something went wrong</p>
+      <p class="error-detail" id="error-detail"></p>
+      <button class="try-again-btn" id="try-again-btn">↻ Try again</button>
+    </div>
+
+    <!-- ═══ RESULTS ═══ -->
+    <div class="results-area" id="results-area">
+      <hr class="divider" />
+      <h2 style="font-family:'Caveat',cursive; font-size:1.8rem; text-align:center; transform:rotate(-0.5deg); margin-bottom:1.5rem; color:var(--ink);">
+        Field Identification Notes
+      </h2>
+      <div id="species-list"></div>
+    </div>
+
+    <!-- ═══ CARE GUIDE ═══ -->
+    <div class="care-guide-area" id="care-guide-area">
+      <hr class="divider" />
+      <h2 style="font-family:'Caveat',cursive; font-size:1.8rem; text-align:center; transform:rotate(0.3deg); margin-bottom:1rem; color:var(--ink);">
+        📓 Care Journal
+      </h2>
+      <div class="care-guide-wrapper">
+        <div class="care-guide-content" id="care-guide-content">
+          <!-- Generated care guide goes here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="journal-footer">
+      <span class="footer-plant">🌻</span>
+      Powered by Pl@ntNet identification & NVIDIA GLM · made with dirt under our fingernails
+    </footer>
+
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

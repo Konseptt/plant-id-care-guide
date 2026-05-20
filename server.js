@@ -256,6 +256,10 @@ app.post('/api/identify', identifyLimiter, upload.array('images', 5), async (req
     }
 
     const apiKey = process.env.PLANTNET_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'Plant identification API key is not configured on the server. Please check your environment variables.' });
+    }
+
     const url = `https://my-api.plantnet.org/v2/identify/all?include-related-images=true&no-reject=false&nb-results=5&lang=en&type=kt&api-key=${apiKey}`;
 
     // Apply timeout on the upstream identification request
@@ -277,6 +281,12 @@ app.post('/api/identify', identifyLimiter, upload.array('images', 5), async (req
     if (!response.ok) {
       const text = await response.text();
       console.error('Pl@ntNet error:', response.status, text);
+      if (response.status === 401 || response.status === 403) {
+        return res.status(502).json({ error: 'Plant identification API authentication failed. The server API key may be invalid or expired.' });
+      }
+      if (response.status === 429) {
+        return res.status(502).json({ error: 'Plant identification rate limit reached. Please try again later.' });
+      }
       return res.status(502).json({ error: 'Plant identification service returned an error. Please try again.' });
     }
 
@@ -348,6 +358,12 @@ Be warm and practical. No fluff.`;
 
   try {
     const apiKey = process.env.NVIDIA_API_KEY;
+    if (!apiKey) {
+      res.write(`data: ${JSON.stringify({ error: 'Care guide API key is not configured on the server. Please check your environment variables.' })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      clearTimeout(timeout);
+      return res.end();
+    }
 
     const nvidiaRes = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
       method: 'POST',

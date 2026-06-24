@@ -330,10 +330,26 @@
     careGuideArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     let rawMarkdown = '';
+    let renderFrame = null;
+    let isDone = false;
+
+    // Throttle DOM updates with requestAnimationFrame
+    const scheduleRender = () => {
+      if (renderFrame) return; // already scheduled
+      renderFrame = requestAnimationFrame(() => {
+        if (!isDone) {
+          careGuideContent.innerHTML = markdownToHtml(rawMarkdown) + '<span class="typing-cursor">▌</span>';
+        }
+        renderFrame = null;
+      });
+    };
+
     const evtSource = new EventSource(`/api/care-guide?${params.toString()}`);
 
     evtSource.onmessage = (event) => {
       if (event.data === '[DONE]') {
+        isDone = true;
+        if (renderFrame) cancelAnimationFrame(renderFrame);
         evtSource.close();
         careGuideContent.innerHTML = markdownToHtml(rawMarkdown);
         btn.disabled = false;
@@ -344,6 +360,8 @@
       try {
         const data = JSON.parse(event.data);
         if (data.error) {
+          isDone = true;
+          if (renderFrame) cancelAnimationFrame(renderFrame);
           evtSource.close();
           careGuideContent.innerHTML = `<p style="color:var(--wine);">Error: ${esc(data.error)}</p>`;
           btn.disabled = false;
@@ -352,12 +370,14 @@
         }
         if (data.text) {
           rawMarkdown += data.text;
-          careGuideContent.innerHTML = markdownToHtml(rawMarkdown) + '<span class="typing-cursor">▌</span>';
+          scheduleRender();
         }
       } catch (e) { /* skip */ }
     };
 
     evtSource.onerror = () => {
+      isDone = true;
+      if (renderFrame) cancelAnimationFrame(renderFrame);
       evtSource.close();
       if (rawMarkdown) {
         careGuideContent.innerHTML = markdownToHtml(rawMarkdown);

@@ -78,10 +78,12 @@
   async function setCsrfCookie() {
     try {
       const res = await fetch('/api/csrf-token', { credentials: 'same-origin' });
-      return res.ok;
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.token || null;
     } catch (err) {
       console.error('CSRF cookie error:', err);
-      return false;
+      return null;
     }
   }
 
@@ -309,8 +311,8 @@
     btn.textContent = '✍️ Writing...';
 
     // Set CSRF cookie before making SSE request
-    const csrfOk = await setCsrfCookie();
-    if (!csrfOk) {
+    const csrfToken = await setCsrfCookie();
+    if (!csrfToken) {
       careGuideContent.innerHTML = '<p style="color:var(--wine);">Session error. Please refresh the page.</p>';
       btn.disabled = false;
       btn.textContent = '📓 Write care guide';
@@ -319,6 +321,7 @@
 
     const params = new URLSearchParams({
       scientificName: species.scientificNameWithoutAuthor,
+      csrf: csrfToken,
     });
     if (species.commonNames && species.commonNames.length > 0) {
       params.set('commonNames', species.commonNames.join(','));

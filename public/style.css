@@ -4,6 +4,11 @@
 /* Reset & Root */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+:focus-visible {
+  outline: 2px dashed var(--rust);
+  outline-offset: 4px;
+}
+
 :root {
   --parchment: #f4edd3;
   --parchment-dark: #e8dfc0;
@@ -201,6 +206,7 @@ body::after {
 }
 
 .upload-zone:hover,
+.upload-zone:focus-visible,
 .upload-zone.drag-over {
   border-color: var(--botanical-green);
   background: #f7f3e0;
@@ -262,7 +268,8 @@ body::after {
   transition: transform 0.4s ease;
 }
 
-.preview-frame:hover {
+.preview-frame:hover,
+.preview-frame:focus-visible {
   transform: rotate(0deg) scale(1.02);
 }
 
@@ -304,7 +311,8 @@ body::after {
   line-height: 1;
 }
 
-.remove-photo:hover {
+.remove-photo:hover,
+.remove-photo:focus-visible {
   background: var(--wine);
   color: var(--cream);
   transform: rotate(90deg);
@@ -346,7 +354,8 @@ body::after {
   position: relative;
 }
 
-.organ-tag:hover {
+.organ-tag:hover,
+.organ-tag:focus-visible {
   background: var(--parchment-dark);
   transform: translateY(-2px);
 }
@@ -391,7 +400,8 @@ body::after {
 
 .identify-btn.visible { display: block; }
 
-.identify-btn:hover {
+.identify-btn:hover,
+.identify-btn:focus-visible {
   background: var(--rust);
   transform: rotate(0deg) scale(1.04);
   box-shadow: 5px 6px 0 var(--shadow-deep);
@@ -480,7 +490,8 @@ body::after {
   opacity: 0.3;
 }
 
-.species-entry:hover {
+.species-entry:hover,
+.species-entry:focus-visible {
   transform: rotate(0deg) translateX(4px);
   box-shadow: 4px 5px 12px var(--shadow-deep);
 }
@@ -572,7 +583,8 @@ body::after {
   flex-shrink: 0;
 }
 
-.species-images img:hover {
+.species-images img:hover,
+.species-images img:focus-visible {
   transform: scale(1.3) rotate(-2deg);
   z-index: 2;
   position: relative;
@@ -594,7 +606,8 @@ body::after {
   display: inline-block;
 }
 
-.care-btn:hover {
+.care-btn:hover,
+.care-btn:focus-visible {
   background: var(--wine);
   transform: rotate(0deg) scale(1.05);
 }
@@ -769,7 +782,8 @@ body::after {
   transition: all 0.2s;
 }
 
-.try-again-btn:hover {
+.try-again-btn:hover,
+.try-again-btn:focus-visible {
   background: var(--wine);
   color: var(--cream);
 }

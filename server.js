@@ -44,19 +44,21 @@ function generateCsrfToken() {
 }
 
 // Timing-safe session token verification
-function validateCsrfToken(token) {
-  if (!token || typeof token !== 'string' || token.length !== 64) return false;
-  const ts = csrfTokens.get(token);
+function validateCsrfToken(cookieToken, queryToken) {
+  if (!cookieToken || typeof cookieToken !== 'string' || cookieToken.length !== 64) return false;
+  if (!queryToken || typeof queryToken !== 'string' || queryToken.length !== 64) return false;
+
+  const ts = csrfTokens.get(cookieToken);
   if (ts === undefined) return false;
   if (Date.now() - ts > CSRF_TTL_MS) {
-    csrfTokens.delete(token);
+    csrfTokens.delete(cookieToken);
     return false;
   }
-  csrfTokens.delete(token); // Single-use
+  csrfTokens.delete(cookieToken); // Single-use
   try {
-    const a = Buffer.from(token, 'hex');
-    const b = Buffer.from(token, 'hex');
-    return a.length === 32 && crypto.timingSafeEqual(a, b);
+    const a = Buffer.from(cookieToken, 'hex');
+    const b = Buffer.from(queryToken, 'hex');
+    return a.length === 32 && b.length === 32 && crypto.timingSafeEqual(a, b);
   } catch {
     return false;
   }
@@ -221,7 +223,7 @@ app.get('/api/csrf-token', csrfLimiter, (req, res) => {
     maxAge: CSRF_TTL_MS,
     path: '/api/care-guide',
   });
-  res.json({ ok: true });
+  res.json({ ok: true, token });
 });
 
 // Identify plant using Pl@ntNet API
@@ -305,9 +307,10 @@ app.post('/api/identify', identifyLimiter, upload.array('images', 5), async (req
 app.get('/api/care-guide', careGuideLimiter, async (req, res) => {
   const cookieHeader = req.headers.cookie || '';
   const csrfMatch = cookieHeader.match(/(?:^|;\s*)_csrf=([a-f0-9]{64})/);
-  const csrfToken = csrfMatch ? csrfMatch[1] : null;
+  const cookieToken = csrfMatch ? csrfMatch[1] : null;
+  const queryToken = req.query.csrf;
 
-  if (!validateCsrfToken(csrfToken)) {
+  if (!validateCsrfToken(cookieToken, queryToken)) {
     return res.status(403).json({ error: 'Invalid or expired session token. Please refresh and try again.' });
   }
 

@@ -207,7 +207,9 @@ const upload = multer({
 });
 
 app.use(express.json({ limit: '1mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+// Cache static assets for faster repeat visits; etag still allows the browser
+// to revalidate, so new deploys are picked up.
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h', etag: true }));
 
 // CSRF Token Setup Endpoint
 const csrfLimiter = rateLimit({

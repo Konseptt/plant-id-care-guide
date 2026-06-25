@@ -1,21 +1,21 @@
-# 🌿 Plant Field Journal
+# Plant Field Journal
 
-A secure, retro-styled botanical field journal for identifying plants from photographs and generating streaming, AI-powered care guides.
+A secure, retro-styled botanical field journal for identifying plants from photographs and generating streaming, automated care guides.
 
 Live Site: [https://plant.ranjansharma.info.np/](https://plant.ranjansharma.info.np/)
 
 ---
 
-## 📸 Overview and Features
+## Overview and Features
 
 - **Identification**: Upload a plant photo (JPEG/PNG) to identify species, botanical classification, and common names.
-- **AI Care Guide**: Streams detailed watering schedules, light requirements, and custom tips.
+- **Care Guide**: Streams detailed watering schedules, light requirements, and custom tips.
 - **Retro Aesthetic**: Styled like a hand-made vintage botanical journal, complete with parchment texture, ink stains, and margin doodles.
 - **Production Hardened**: Built with strict rate limiters, memory-safe token-based CSRF protection, and magic byte file signature validation.
 
 ---
 
-## 📊 Application Workflows
+## Application Workflows
 
 ### User Journey Flow
 
@@ -28,7 +28,7 @@ graph TD
     PlantNet -->|No match| Error[Show helpful error state]
     Results --> Select[User selects plant and requests Care Guide]
     Select --> CSRF{Valid CSRF Cookie?}
-    CSRF -->|Yes| Stream[NVIDIA AI API streams markdown response]
+    CSRF -->|Yes| Stream[NVIDIA API streams markdown response]
     CSRF -->|No| Reject[Reject with 403 Forbidden]
 ```
 
@@ -40,7 +40,7 @@ sequenceDiagram
     actor Client as Browser Client
     participant Server as Express Server
     participant PlantNet as "Pl@ntNet API"
-    participant Nvidia as NVIDIA AI API
+    participant Nvidia as NVIDIA API
 
     Client->>Server: GET /api/csrf-token
     Server-->>Client: Set httpOnly _csrf cookie & return JSON token
@@ -58,7 +58,7 @@ sequenceDiagram
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: Vanilla HTML5, CSS3, ES6 Javascript
 - **Backend**: Express.js (Node.js runtime)
@@ -67,7 +67,7 @@ sequenceDiagram
 
 ---
 
-## 🚀 Local Installation
+## Local Installation
 
 1. **Clone the repository**:
    ```bash
@@ -95,7 +95,7 @@ sequenceDiagram
 
 ---
 
-## ☁️ Deployment
+## Deployment
 
 ### Render
 Connect your repository to Render, configure a Node web service, and set the start command to `npm start`. Add `NODE_ENV=production` along with your API keys to the environment settings.

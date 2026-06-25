@@ -59,14 +59,14 @@
       </div>
 
       <!-- Organ picker -->
-      <div class="organ-picker" id="organ-picker">
-        <span class="organ-picker-label">What part of the plant is this?</span>
-        <button class="organ-tag active" data-organ="auto">auto detect</button>
-        <button class="organ-tag" data-organ="flower">🌸 flower</button>
-        <button class="organ-tag" data-organ="leaf">🍃 leaf</button>
-        <button class="organ-tag" data-organ="fruit">🍎 fruit</button>
-        <button class="organ-tag" data-organ="bark">🪵 bark</button>
-        <button class="organ-tag" data-organ="habit">🌳 whole plant</button>
+      <div class="organ-picker" id="organ-picker" role="group" aria-labelledby="organ-picker-label">
+        <span class="organ-picker-label" id="organ-picker-label">What part of the plant is this?</span>
+        <button class="organ-tag active" data-organ="auto" aria-pressed="true">auto detect</button>
+        <button class="organ-tag" data-organ="flower" aria-pressed="false">🌸 flower</button>
+        <button class="organ-tag" data-organ="leaf" aria-pressed="false">🍃 leaf</button>
+        <button class="organ-tag" data-organ="fruit" aria-pressed="false">🍎 fruit</button>
+        <button class="organ-tag" data-organ="bark" aria-pressed="false">🪵 bark</button>
+        <button class="organ-tag" data-organ="habit" aria-pressed="false">🌳 whole plant</button>
       </div>
 
       <!-- Identify Button -->
@@ -74,13 +74,13 @@
     </section>
 
     <!-- Loading area -->
-    <div class="loading-area" id="loading-area">
+    <div class="loading-area" id="loading-area" role="status" aria-live="polite">
       <span class="loading-quill">🪶</span>
       <p class="loading-text" id="loading-text">Consulting the botanical archives...</p>
     </div>
 
     <!-- Error container -->
-    <div class="error-area" id="error-area">
+    <div class="error-area" id="error-area" role="alert" aria-live="assertive">
       <p class="error-msg" id="error-msg">Something went wrong</p>
       <p class="error-detail" id="error-detail"></p>
       <button class="try-again-btn" id="try-again-btn">↻ Try again</button>

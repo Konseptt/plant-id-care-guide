@@ -153,8 +153,12 @@
   organPicker.addEventListener('click', (e) => {
     const tag = e.target.closest('.organ-tag');
     if (!tag) return;
-    organPicker.querySelectorAll('.organ-tag').forEach(t => t.classList.remove('active'));
+    organPicker.querySelectorAll('.organ-tag').forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-pressed', 'false');
+    });
     tag.classList.add('active');
+    tag.setAttribute('aria-pressed', 'true');
     selectedOrgan = tag.dataset.organ;
   });
 
@@ -274,6 +278,7 @@
       careBtn.className = 'care-btn';
       careBtn.dataset.index = idx;
       careBtn.textContent = '📓 Write care guide';
+      careBtn.setAttribute('aria-label', `Write care guide for ${sp.scientificNameWithoutAuthor || 'this plant'}`);
       entry.appendChild(careBtn);
 
       speciesList.appendChild(entry);

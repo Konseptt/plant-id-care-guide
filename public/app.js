@@ -281,9 +281,11 @@
             const imgEl = document.createElement('img');
             imgEl.alt = sp.scientificNameWithoutAuthor || 'Plant';
             imgEl.loading = 'lazy';
-            // Drop thumbnails that fail to load so we never show a broken-image icon.
+            imgEl.referrerPolicy = 'no-referrer';
+            // Route through our same-origin proxy so CSP, hotlink, and referer
+            // checks cannot block the thumbnail; drop it if it still fails.
             imgEl.onerror = () => imgEl.remove();
-            imgEl.src = src;
+            imgEl.src = '/api/ref-image?u=' + encodeURIComponent(src);
             imgsDiv.appendChild(imgEl);
           }
         });

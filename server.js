@@ -307,7 +307,7 @@ app.post('/api/identify', identifyLimiter, upload.array('images', 5), async (req
   }
 });
 
-// SSE streaming connection for AI Care Guides
+// SSE streaming connection for Care Guides
 app.get('/api/care-guide', careGuideLimiter, async (req, res) => {
   const cookieHeader = req.headers.cookie || '';
   const csrfMatch = cookieHeader.match(/(?:^|;\s*)_csrf=([a-f0-9]{64})/);
@@ -485,6 +485,59 @@ app.use((err, req, res, next) => {
   }
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error.' });
+});
+
+// Same-origin proxy for Pl@ntNet reference thumbnails. Embedding the remote
+// URLs directly is fragile: CSP, hotlink/referer checks, and subdomain drift
+// can each silently block them. Proxying makes the images same-origin and lets
+// us cache them, so the results screen reliably renders thumbnails.
+const REF_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+function isTrustedPlantNetUrl(raw) {
+  try {
+    const u = new URL(raw);
+    return u.protocol === 'https:' &&
+      (u.hostname === 'plantnet.org' || u.hostname.endsWith('.plantnet.org'));
+  } catch {
+    return false;
+  }
+}
+
+app.get('/api/ref-image', async (req, res) => {
+  const raw = typeof req.query.u === 'string' ? req.query.u : '';
+  if (!isTrustedPlantNetUrl(raw)) {
+    return res.status(400).json({ error: 'Invalid image source' });
+  }
+  // node-fetch v2 does not reliably honour an AbortSignal, so guard with a
+  // race timeout to guarantee the handler returns even if the upstream hangs.
+  const controller = new AbortController();
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => { controller.abort(); reject(new Error('Upstream timeout')); }, 10000);
+  });
+  try {
+    const upstream = await Promise.race([
+      fetch(raw, {
+        redirect: 'error', // block SSRF via redirect to another host
+        signal: controller.signal,
+        headers: { 'User-Agent': 'plant-field-journal' },
+      }),
+      timeout,
+    ]);
+    if (!upstream.ok) return res.status(502).json({ error: 'Upstream image error' });
+    const type = upstream.headers.get('content-type') || '';
+    if (!type.startsWith('image/')) return res.status(415).json({ error: 'Not an image' });
+    const declared = Number(upstream.headers.get('content-length') || 0);
+    if (declared > REF_IMAGE_MAX_BYTES) return res.status(413).json({ error: 'Image too large' });
+    const buf = Buffer.from(await upstream.arrayBuffer());
+    if (buf.length > REF_IMAGE_MAX_BYTES) return res.status(413).json({ error: 'Image too large' });
+    res.setHeader('Content-Type', type);
+    res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+    return res.end(buf);
+  } catch {
+    return res.status(502).json({ error: 'Failed to fetch image' });
+  } finally {
+    clearTimeout(timer);
+  }
 });
 
 app.get('*', (req, res) => {

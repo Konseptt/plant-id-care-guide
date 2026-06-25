@@ -553,6 +553,18 @@ body::after {
   text-align: right;
 }
 
+/* Low-confidence advisory banner */
+.low-confidence-warning {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.85rem;
+  border-left: 4px solid var(--wine);
+  background: var(--parchment-dark);
+  color: var(--ink-light);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  border-radius: 2px;
+}
+
 /* Reference images row */
 .species-images {
   display: flex;

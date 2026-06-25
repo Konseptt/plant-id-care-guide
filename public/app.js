@@ -211,6 +211,20 @@
     show(resultsArea);
     speciesList.innerHTML = '';
 
+    // Pl@ntNet returns a probability per match; when even the best result is
+    // weak the identification is unreliable, so surface a caution instead of
+    // letting the user trust a shaky top hit.
+    const topScore = data.results[0] && typeof data.results[0].score === 'number'
+      ? data.results[0].score : 0;
+    if (topScore < 0.25) {
+      const warn = document.createElement('div');
+      warn.className = 'low-confidence-warning';
+      warn.setAttribute('role', 'status');
+      warn.textContent = `Low confidence — best match only ${(topScore * 100).toFixed(1)}%. `
+        + 'Try a sharper photo, fill the frame, or shoot a single leaf or flower close-up.';
+      speciesList.appendChild(warn);
+    }
+
     data.results.forEach((result, idx) => {
       const sp = result.species;
       const score = (result.score * 100).toFixed(1);

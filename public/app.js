@@ -265,9 +265,11 @@
           const src = img.url?.s || img.url?.m || '';
           if (isTrustedImageUrl(src)) {
             const imgEl = document.createElement('img');
-            imgEl.src = src;
             imgEl.alt = sp.scientificNameWithoutAuthor || 'Plant';
             imgEl.loading = 'lazy';
+            // Drop thumbnails that fail to load so we never show a broken-image icon.
+            imgEl.onerror = () => imgEl.remove();
+            imgEl.src = src;
             imgsDiv.appendChild(imgEl);
           }
         });

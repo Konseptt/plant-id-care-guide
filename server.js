@@ -72,7 +72,11 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https://bs.plantnet.org"],
+      // Pl@ntNet serves related-species thumbnails from several hosts under
+      // *.plantnet.org (bs.plantnet.org and regional mirrors), so allow the
+      // whole zone to match the client-side isTrustedImageUrl() check. A single
+      // hardcoded host silently blocked any image served from another subdomain.
+      imgSrc: ["'self'", "data:", "https://*.plantnet.org"],
       connectSrc: ["'self'"],
     },
   },

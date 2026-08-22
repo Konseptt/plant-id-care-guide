@@ -381,7 +381,8 @@ Be warm and practical. No fluff.`;
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'z-ai/glm-5.1',
+        // z-ai/glm-5.1 reached EOL on 2026-07-02 (NVIDIA returns 410 Gone).
+        model: process.env.NVIDIA_MODEL || 'meta/llama-3.3-70b-instruct',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.6,
         top_p: 0.9,

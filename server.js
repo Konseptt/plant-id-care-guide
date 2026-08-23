@@ -381,7 +381,9 @@ Be warm and practical. No fluff.`;
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'z-ai/glm-5.1',
+        // z-ai/glm-5.1 reached EOL on 2026-07-02 (NVIDIA returns 410 Gone).
+        // Prefer a currently hosted, low-latency chat model; override with NVIDIA_MODEL.
+        model: process.env.NVIDIA_MODEL || 'nvidia/nemotron-3-nano-30b-a3b',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.6,
         top_p: 0.9,
